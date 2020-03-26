@@ -179,6 +179,27 @@ public class DmlOperations extends BaseDbOperations {
   }
 
   /**
+   * Inserts raw data into a Database
+   *
+   * @param query                      {@link QueryDefinition} as a parameter group
+   * @param autoGenerateKeysAttributes an {@link AutoGenerateKeysAttributes} as a parameter group
+   * @param connector                  the acting connector
+   * @param connection                 the acting connection
+   * @return void
+   * @throws SQLException if an error is produced
+   */
+  public void insertRaw(@ParameterGroup(name = QUERY_GROUP) @Placement(tab = ADVANCED_TAB) QueryDefinition query,
+                        @ParameterGroup(name = AUTO_GENERATE_KEYS) AutoGenerateKeysAttributes autoGenerateKeysAttributes,
+                        @Config DbConnector connector,
+                        @Connection DbConnection connection,
+                        StreamingHelper streamingHelper)
+      throws SQLException {
+
+    final Query resolvedQuery = resolveQuery(query, connector, connection, streamingHelper, INSERT);
+    executeUpdate(query, autoGenerateKeysAttributes, connection, resolvedQuery);
+  }
+
+  /**
    * Updates data in a database.
    *
    * @param query                      {@link QueryDefinition} as a parameter group

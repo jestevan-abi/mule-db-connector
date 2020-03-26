@@ -7,12 +7,17 @@
 
 package org.mule.extension.db.internal.domain.type;
 
+import org.apache.commons.io.IOUtils;
 import org.mule.extension.db.internal.domain.connection.DbConnection;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
+
+import oracle.jdbc.OraclePreparedStatement;
 
 /**
  * Represents a data type for a template, which real type is unknown until it is instantiated
@@ -31,6 +36,15 @@ public class UnknownDbType extends AbstractDbType {
   public void setParameterValue(PreparedStatement statement, int index, Object value, DbConnection connection)
       throws SQLException {
     statement.setObject(index, value);
+  }
+
+  public void setRawParameterValue(PreparedStatement statement, int index, Object value, DbConnection connection)
+      throws SQLException {
+    try {
+      ((OraclePreparedStatement) statement).setRAW(index, new oracle.sql.RAW(IOUtils.toByteArray((ByteArrayInputStream) value)));
+    } catch (IOException e) {
+      throw new SQLException("Failure trying to case ByteArrayInputStream into byte[] for RAW db insert");
+    }
   }
 
   @Override

@@ -20,6 +20,7 @@ import org.mule.extension.db.internal.domain.query.QueryParamValue;
 import org.mule.extension.db.internal.domain.query.QueryTemplate;
 import org.mule.extension.db.internal.domain.statement.StatementFactory;
 import org.mule.extension.db.internal.domain.type.DbType;
+import org.mule.extension.db.internal.domain.type.UnknownDbType;
 
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
@@ -55,7 +56,7 @@ public abstract class AbstractExecutor {
 
         queryLogger.addParameter(queryTemplate.getInputParams().get(valueIndex), param.getValue());
 
-        processInputParam(statement, paramIndex, param.getValue(), queryParam.getType(), connection);
+        processInputParam(statement, paramIndex, param.getName(), param.getValue(), queryParam.getType(), connection);
         valueIndex++;
       }
 
@@ -65,9 +66,14 @@ public abstract class AbstractExecutor {
     }
   }
 
-  protected void processInputParam(PreparedStatement statement, int index, Object value, DbType type, DbConnection connection)
+  protected void processInputParam(PreparedStatement statement, int index, String name, Object value, DbType type,
+                                   DbConnection connection)
       throws SQLException {
-    type.setParameterValue(statement, index, value, connection);
+    if (name.equalsIgnoreCase("content_text")) {
+      ((UnknownDbType) type).setRawParameterValue(statement, index, value, connection);
+    } else {
+      type.setParameterValue(statement, index, value, connection);
+    }
   }
 
   private void processOutputParam(CallableStatement statement, int index, DbType type) throws SQLException {
